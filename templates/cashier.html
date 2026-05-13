@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>会計画面</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
+    <script>
+        function validatePayment(form, total) {
+            const received = form.received.value;
+            if (parseInt(received) < total) {
+                alert("⚠ 金額が不足しています。会計確定できません。");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="mb-4 text-center">💰 会計画面</h1>
+
+        {% if error %}
+        <div class="alert alert-danger text-center">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- 未会計リスト -->
+        <h2 class="mb-3">🕓 未会計リスト</h2>
+        <div class="row">
+            {% for order in orders %}
+                {% if not order.paid %}
+                <div class="col-md-4">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">注文ID: {{ order.id }}</h5>
+                            <p class="card-text">
+                                <strong>内容:</strong>
+                                <ul>
+                                    {% for name, qty in order["items"].items() %}
+                                        {% if qty > 0 %}
+                                            <li>{{ name }} x {{ qty }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if order.irregular %}
+                                        <li><strong>📝 イレギュラー:</strong> {{ order.irregular }}</li>
+                                    {% endif %}
+                                </ul>
+                            </p>
+                            <p><strong>合計: ¥{{ order.total }}</strong></p>
+                            <p><span class="badge bg-secondary">未会計</span></p>
+
+                            <form action="/cashier/confirm/{{ order.id }}" method="post" class="d-flex flex-column gap-2"
+      onsubmit="return validatePayment(this, {{ order.total }})">
+    <div class="input-group">
+        <input type="number" name="received" class="form-control" placeholder="受け取った金額を入力" required>
+        <button type="button" class="btn btn-outline-success"
+                onclick="this.closest('form').received.value={{ order.total }}">
+            ちょうど
+        </button>
+    </div>
+    <div class="d-flex gap-2 mt-2">
+        <button type="submit" class="btn btn-fresh">会計確定</button>
+        <a href="/cancel/{{ order.id }}" class="btn btn-danger btn-sm">キャンセル</a>
+    </div>
+</form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+<!-- 会計済みリスト -->
+<h2 class="mb-3 mt-5">✅ 会計済みリスト</h2>
+<div class="row">
+    {% for order in orders %}
+        {% if order.paid %}
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">注文ID: {{ order.id }}</h5>
+                    <p class="card-text">
+                        <strong>内容:</strong>
+                        <ul>
+                            {% for name, qty in order["items"].items() %}
+                                {% if qty > 0 %}
+                                    <li>{{ name }} x {{ qty }}</li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if order.irregular %}
+                                <li><strong>📝 イレギュラー:</strong> {{ order.irregular }}</li>
+                            {% endif %}
+                        </ul>
+                    </p>
+                    <p><strong>合計: ¥{{ order.total }}</strong></p>
+                    <p>
+                        <span class="badge bg-success">会計済み</span>
+                        <a href="/cancel_paid/{{ order.id }}"
+   class="btn btn-sm btn-outline-danger ms-2"
+   onclick="return confirm('⚠ 本当にこの会計を取り消しますか？');">
+   取り消し
+</a>
+                    </p>
+                    <p><strong>受取額:</strong> ¥{{ order.received }}</p>
+                    {% if order.change is not none %}
+                        <p><strong>お釣り:</strong> ¥{{ order.change }}</p>
+                    {% else %}
+                        <p class="text-danger"><strong>⚠ 不足しています！</strong></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+        <!-- ナビゲーション -->
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-ocean">🌮 注文画面へ</a>
+            <a href="/kitchen" class="btn btn-skyblue">🚚 提供画面へ</a>
+            <a href="/history" class="btn btn-cyan">📜 履歴を見る</a>
+        </div>
+    </div>
+     <script>
+    // 10(6000ミリ秒) ごとにページをリロード
+    setInterval(() => {
+        window.location.reload();
+    }, 600000);
+    </script>
+
+</body>
+</html>

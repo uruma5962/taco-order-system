@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>履歴画面</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
+    <script>
+        function confirmClear() {
+            return confirm("⚠ 本当に履歴を全て削除しますか？\nこの操作は元に戻せません。");
+        }
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="mb-4 text-center">📜 履歴画面</h1>
+
+        <!-- 💰 合計金額を上に配置 -->
+<div class="text-center mb-4">
+    <h3>💰 履歴合計金額: ¥{{ total_sum }}</h3>
+    {% if average_time %}
+        <h4>🕒 平均提供時間: {{ average_time }}</h4>
+    {% else %}
+        <h4>🕒 平均提供時間: データなし</h4>
+    {% endif %}
+</div>
+        <!-- 下までジャンプボタン -->
+<div class="text-center mt-3">
+    <button class="btn btn-dark" onclick="scrollToBottom()">⬇ 一番下へ</button>
+</div>
+
+        <!-- 📦 商品ごとの合計 & 🏪 残り在庫を横並び -->
+        <div class="row text-center mt-4">
+            <div class="col-md-6">
+                <h4>📦 商品ごとの合計</h4>
+               <ul class="list-group d-inline-block text-start">
+    {% for name, qty in item_totals.items() %}
+        <li class="list-group-item">{{ name }} x {{ qty }}</li>
+    {% endfor %}
+</ul>
+            </div>
+
+            <div class="col-md-6">
+                <h4>🏪 残り在庫</h4>
+                <ul class="list-group d-inline-block text-start">
+                    {% for name, qty in stock.items() %}
+                        <li class="list-group-item">{{ name }} : 残り {{ qty }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+<script>
+function scrollToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+</script>
+
+        <div class="row">
+            {% for order in orders %}
+            <div class="col-md-4">
+                <!-- ✅ 提供されていない場合は赤枠＆やばいマーク -->
+                <div class="card shadow-sm mb-4 {% if not order.delivered %} border-danger bg-light {% endif %} position-relative">
+                    {% if not order.delivered %}
+                        <span class="badge bg-danger text-white position-absolute top-0 end-0 m-2"
+                              style="font-size: 0.9rem;">⚠ 未提供</span>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">注文ID: {{ order.id }}</h5>
+                        <p><strong>注文時刻:</strong> {{ order.timestamp_label }}</p>
+                        <p>
+                            <strong>内容:</strong>
+                            <ul>
+                                {% for name, qty in order["items"].items() %}
+                                    {% if qty > 0 %}
+                                        <li>{{ name }} x {{ qty }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if order.irregular %}
+                                    <li><strong>📝 イレギュラー:</strong> {{ order.irregular }}</li>
+                                {% endif %}
+                            </ul>
+                        </p>
+
+                       <p><strong>合計: ¥{{ order.total }}</strong></p>
+
+<!-- 🕒 タイマー表示 -->
+{% if order.paid and not order.delivered %}
+    <!-- JSタイマーが回す部分 -->
+    <p><strong>経過時間:</strong> <span id="timer-{{ order.id }}">00:00</span></p>
+{% elif order.delivered and order.elapsed_label %}
+    <!-- 提供完了後は確定時間を表示 -->
+    <p><strong>提供までの時間:</strong> {{ order.elapsed_label }}</p>
+{% endif %}
+
+{% if order.paid %}
+    <p>
+        <span class="badge bg-success">会計済み</span>
+    </p>
+
+    <p><strong>受取額:</strong> ¥{{ order.received }}</p>
+    {% if order.change is not none %}
+        <p><strong>お釣り:</strong> ¥{{ order.change }}</p>
+    {% else %}
+        <p class="text-danger"><strong>⚠ 不足しています！</strong></p>
+    {% endif %}
+{% else %}
+    <p><span class="badge bg-secondary">未会計</span></p>
+{% endif %}
+
+                        {% if order.delivered %}
+                            <p><span class="badge bg-primary">提供済み</span></p>
+                        {% elif order.in_kitchen %}
+                            <p><span class="badge bg-success">調理済み</span></p>
+                        {% else %}
+                            <p><span class="badge bg-warning">提供中</span></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- ナビゲーション -->
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-ocean">🌮 注文画面へ</a>
+            <a href="/cashier" class="btn btn-navy">💰 会計画面へ</a>
+            <a href="/kitchen" class="btn btn-skyblue">🚚 厨房画面へ</a>
+        </div>
+
+        <!-- 履歴削除ボタン -->
+        <div class="text-center mt-5">
+            <a href="/history/clear" class="btn btn-danger btn-lg" onclick="return confirmClear();">
+                🚨 履歴を全削除
+            </a>
+        </div>
+        <!-- ページネーション -->
+<div class="d-flex justify-content-center mt-4">
+    <nav>
+        <ul class="pagination">
+            <!-- 前のページ -->
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ page - 1 }}">前へ</a>
+            </li>
+
+            <!-- ページ番号 -->
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+            </li>
+            {% endfor %}
+
+            <!-- 次のページ -->
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ page + 1 }}">次へ</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+    </div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    {% for order in orders %}
+        {% if order.paid and not order.delivered %}
+            let startTime = new Date("{{ order.paid_at_iso }}");
+            let timerElement = document.getElementById("timer-{{ order.id }}");
+            if (timerElement) {
+                setInterval(() => {
+                    let now = new Date();
+                    let diff = Math.floor((now - startTime) / 1000);
+                    let minutes = String(Math.floor(diff / 60)).padStart(2, '0');
+                    let seconds = String(diff % 60).padStart(2, '0');
+                    timerElement.textContent = `${minutes}:${seconds}`;
+                }, 1000);
+            }
+        {% endif %}
+    {% endfor %}
+});
+</script>
+ <script>
+    // 10(6000ミリ秒) ごとにページをリロード
+    setInterval(() => {
+        window.location.reload();
+    }, 600000);
+    </script>
+</body>
+</html>

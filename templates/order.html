@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>注文画面</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
+
+    <style>
+        body { padding: 20px; }
+        .card { position: relative; }
+
+        .card img {
+            height: 180px;
+            width: 100%;
+            object-fit: contain;
+            background: #fff;
+            padding: 5px;
+        }
+
+        .stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+
+    <script>
+    function validateOrder() {
+        let total = 0;
+        const inputs = document.querySelectorAll("input[type=radio]:checked");
+        inputs.forEach(input => {
+            total += parseInt(input.value);
+        });
+
+        const irregular = document.getElementById("irregular").value.trim();
+        if (total === 0 && irregular === "") {
+            alert("⚠ 商品を1つ以上選択してください。");
+            return false;
+        }
+        return true;
+    }
+    </script>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5 main-title">🌮 ご注文メニュー</h1>
+
+        {% if error %}
+        <div class="alert alert-danger text-center">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/order" method="post" onsubmit="return validateOrder()">
+            <div class="row g-4">
+                <!-- タコス -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg">
+                        <span class="badge bg-secondary stock-badge">残り {{ stock["タコス"] }}</span>
+                        <img src="/static/tacos.jpg" class="card-img-top" alt="タコス">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">タコス</h5>
+                            <p class="card-text">¥350</p>
+                            <div class="btn-group" role="group" aria-label="タコス数量選択">
+                                {% for i in range(6) %}
+                                <input type="radio" class="btn-check" name="タコス" id="tacos{{ i }}" value="{{ i }}" {% if i == 0 %}checked{% endif %}>
+                                <label class="btn btn-outline-orange1" for="tacos{{ i }}">{{ i }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ビール -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg">
+                        <span class="badge bg-secondary stock-badge">残り {{ stock["ビール"] }}</span>
+                        <img src="/static/beer.jpg" class="card-img-top" alt="ビール">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">ビール</h5>
+                            <p class="card-text">¥500</p>
+                            <div class="btn-group" role="group" aria-label="ビール数量選択">
+                                {% for i in range(6) %}
+                                <input type="radio" class="btn-check" name="ビール" id="beer{{ i }}" value="{{ i }}" {% if i == 0 %}checked{% endif %}>
+                                <label class="btn btn-outline-steelblue" for="beer{{ i }}">{{ i }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- コーラ -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg">
+                        <span class="badge bg-secondary stock-badge">残り {{ stock["コーラ"] }}</span>
+                        <img src="/static/cola.jpg" class="card-img-top" alt="コーラ">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">コーラ</h5>
+                            <p class="card-text">¥200</p>
+                            <div class="btn-group" role="group" aria-label="コーラ数量選択">
+                                {% for i in range(6) %}
+                                <input type="radio" class="btn-check" name="コーラ" id="cola{{ i }}" value="{{ i }}" {% if i == 0 %}checked{% endif %}>
+                                <label class="btn btn-outline-orange4" for="cola{{ i }}">{{ i }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- パクチー抜きタコス -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg">
+                        <span class="badge bg-secondary stock-badge">残り {{ stock["タコス"] }}</span>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">パクチー抜きタコス</h5>
+                            <p class="card-text">¥350</p>
+                            <div class="btn-group" role="group" aria-label="パクチー抜きタコス数量選択">
+                                {% for i in range(6) %}
+                                <input type="radio" class="btn-check" name="パクチー抜きタコス" id="noCilantro{{ i }}" value="{{ i }}" {% if i == 0 %}checked{% endif %}>
+                                <label class="btn btn-outline-orange1" for="noCilantro{{ i }}">{{ i }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 玉ねぎ抜きタコス -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg">
+                        <span class="badge bg-secondary stock-badge">残り {{ stock["タコス"] }}</span>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">玉ねぎ抜きタコス</h5>
+                            <p class="card-text">¥350</p>
+                            <div class="btn-group" role="group" aria-label="玉ねぎ抜きタコス数量選択">
+                                {% for i in range(6) %}
+                                <input type="radio" class="btn-check" name="玉ねぎ抜きタコス" id="noOnion{{ i }}" value="{{ i }}" {% if i == 0 %}checked{% endif %}>
+                                <label class="btn btn-outline-orange1" for="noOnion{{ i }}">{{ i }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- イレギュラータコス -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg">
+                        <span class="badge bg-secondary stock-badge">残り {{ stock["タコス"] }}</span>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">イレギュラータコス</h5>
+                            <p class="card-text">¥350</p>
+                            <div class="btn-group" role="group" aria-label="イレギュラータコス数量選択">
+                                {% for i in range(6) %}
+                                <input type="radio" class="btn-check" name="イレギュラータコス" id="irregularTacos{{ i }}" value="{{ i }}" {% if i == 0 %}checked{% endif %}>
+                                <label class="btn btn-outline-orange1" for="irregularTacos{{ i }}">{{ i }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- イレギュラー注文欄 -->
+            <div class="mt-4">
+                <label for="irregular" class="form-label text-white">📝 イレギュラー注文</label>
+                <textarea name="irregular" id="irregular" class="form-control" rows="3"></textarea>
+            </div>
+
+            <!-- 注文ボタン -->
+            <div class="text-center mt-5">
+                <button type="submit" class="btn btn-fresh">注文を確定</button>
+            </div>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/cashier" class="btn btn-navy">💰 会計画面へ</a>
+            <a href="/kitchen" class="btn btn-skyblue">🚚 提供画面へ</a>
+            <a href="/history" class="btn btn-cyan">📜 履歴を見る</a>
+        </div>
+    </div>
+    <script>
+    // 10(6000ミリ秒) ごとにページをリロード
+    setInterval(() => {
+        window.location.reload();
+    }, 600000);
+    </script>
+</body>
+</html>
