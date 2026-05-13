@@ -9,7 +9,25 @@
 
 > 🔄 **リニューアル版を制作中**：本リポジトリは祭りで実運用した FastAPI + Discord 版のコードです。
 > 現在はこれをベースに、**アプリ化を見据えた SPA 版**（GUI 商品管理、トッピング差額対応、営業日締めなど）を別途制作中。
-> SPA 版の進捗・スクリーンショットは個別にお見せできます。
+> ソースコード本体はアプリ化（プロダクト化）を見据えて非公開ですが、参考までに開発中画面を以下に掲載します。
+
+#### SPA 版（制作中）の主要画面
+
+**レジ画面**
+
+![SPA レジ画面](screenshots/spa-register.jpg)
+
+**商品詳細・トッピング選択モーダル**
+
+![SPA トッピング選択](screenshots/spa-topping-modal.png)
+
+**売上確認・営業日記録**
+
+![SPA 売上確認](screenshots/spa-sales.png)
+
+**商品管理（追加・編集・削除）**
+
+![SPA 商品管理](screenshots/spa-products.png)
 
 ---
 
@@ -49,7 +67,23 @@ uvicorn app.main:app --reload
 | 厨房・提供 | `/kitchen` | 提供待ち／提供済みリスト。1 クリックで状態遷移。 |
 | 履歴 | `/history` | 売上合計・商品別販売数・平均提供時間・残在庫を集計。 |
 
-> スクリーンショットは `screenshots/` に配置予定（手動撮影）。
+#### 各画面のスクリーンショット
+
+**注文画面**
+
+![注文画面](screenshots/order.png)
+
+**会計画面**
+
+![会計画面](screenshots/cashier.png)
+
+**厨房・提供画面**
+
+![厨房・提供画面](screenshots/kitchen.png)
+
+**履歴画面**
+
+![履歴画面](screenshots/history.png)
 
 ---
 
